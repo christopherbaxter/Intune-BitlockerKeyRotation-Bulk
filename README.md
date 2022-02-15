@@ -104,5 +104,5 @@ The code will test for the retries based on the count of objects in the array fo
 
 ![](https://github.com/christopherbaxter/Intune-BitlockerKeyRotation-Bulk/blob/348f157a46d96611fcff401e25d5fe79ce47c3b1/Images/11-GenerateandExportReport.jpg)
 
-Visitor Counter (Excuse the font, I have no idea what I'm doing)
-![Visitor Count](https://profile-counter.glitch.me/christopherbaxter/count.svg)
+Visitor Counter (Excuse the font, I have no idea what I'm doing)\
+![Visitor Count](https://profile-counter.glitch.me/Intune-BitlockerKeyRotation-Bulk/count.svg)
