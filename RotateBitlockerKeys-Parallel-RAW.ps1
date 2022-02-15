@@ -27,10 +27,12 @@ param(
     #PLEASE make sure you have specified your details below, else edit this and use the switches\variables in command line.
     [parameter(Mandatory = $TRUE, HelpMessage = "Specify the Azure AD tenant ID.")]
     [ValidateNotNullOrEmpty()]
+    #[string]$TenantID,
     [string]$TenantID,
 
     [parameter(Mandatory = $TRUE, HelpMessage = "Specify the service principal, also known as app registration, Client ID (also known as Application ID).")]
     [ValidateNotNullOrEmpty()]
+    #[string]$ClientID
     [string]$ClientID
 )
 Begin {}
@@ -189,7 +191,7 @@ Process {
             # Construct list as return value for handling both single and multiple instances in response from call
             $GraphResponseList = New-Object -TypeName "System.Collections.ArrayList"
             $Runcount = 1
-    
+                
             # Construct full URI
             $GraphURI = "https://graph.microsoft.com/$($APIVersion)/$($Resource)"
             Write-Verbose -Message "$($PSCmdlet.ParameterSetName) $($GraphURI)"
@@ -217,7 +219,7 @@ Process {
                         "Headers"     = $Headers
                         "Method"      = $PSCmdlet.ParameterSetName
                         "ErrorAction" = "Stop"
-                        "Verbose"     = $VerbosePreference
+                        "Verbose"     = $TRUE
                     }
     
                     switch ($PSCmdlet.ParameterSetName) {
@@ -391,8 +393,8 @@ Process {
     #############################################################################################################################################
 
     #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-    Try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
-    catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
+    try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
+    catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -ErrorAction Stop }
     if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
     $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
     
@@ -407,8 +409,8 @@ Process {
     # This will be if you want to specify the IntuneDeviceIDs
 
     #$InputFile = "$($FilePath)InputFiles\TargetedIntuneDeviceIDs.csv"
-    #$IntuneDevIDs | Export-Csv $InputFile -NoTypeInformation -Delimiter ";"
-    #$IntuneDevIDs = @(Import-Csv -Path $InputFile)
+    $IntuneDevIDs | Export-Csv "$($FilePath)AzureADDeviceID.csv" -NoTypeInformation -Delimiter ";"
+    #$IntuneDevIDs = @(Import-Csv -Path "$($FilePath)AzureADDeviceID.csv" -Delimiter ";")
     #$IntuneDevIDs = $IntuneDevIDs[0..999] # I use this for testing on a small number of devices
     
     #############################################################################################################################################
@@ -431,26 +433,16 @@ Process {
     # Specify the ScriptBlock for the PoshRSJob
     #############################################################################################################################################
 
-    $ScriptBlock = {
-        param (
-            [System.Collections.Hashtable]$AuthenticationHeader, [string]$Resource, [string]$cID, [string]$tID, [string]$APIVersion
-        )
+    <#$ScriptBlock = {
+        param ([System.Collections.Hashtable]$AuthenticationHeader, [string]$Resource, [string]$cID, [string]$tID, [string]$APIVersion)
         if (-not($Runcount)) {
             $Runcount = 0
         }
-
         $Runcount++
-        # This will refresh the authtoken and the authentication header after every 1000 'runs\cycles'
         if ($Runcount -ge 1000) {
-            #$AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ErrorAction Stop
-            #$AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
 
-            #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-            try { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop }
-            catch { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ErrorAction Stop }
-            if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
+            $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
             $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
-
             $Runcount = 0 
         }
         
@@ -460,7 +452,7 @@ Process {
             "Headers"     = $AuthenticationHeader
             "Method"      = "POST"
             "ErrorAction" = "Stop"
-            "Verbose"     = $VerbosePreference
+            "Verbose"     = $TRUE
         }
 
         # Invoke Graph request
@@ -475,19 +467,72 @@ Process {
             }
         }
         catch {
-            #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-            try { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop }
-            catch { $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ErrorAction Stop }
-            if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
+            $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
             $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
             $RequestParams = @{
                 "Uri"         = $GraphURI
                 "Headers"     = $AuthenticationHeader
                 "Method"      = "POST"
                 "ErrorAction" = "Stop"
-                "Verbose"     = $VerbosePreference
+                "Verbose"     = $TRUE
             }
             try {
+                Invoke-RestMethod @RequestParams
+                    if ($?) {
+                        #$Requested = "Successfull"
+                        $obj = New-Object psobject
+                        $obj | Add-Member -Name ID -type noteproperty -Value $_
+                        $obj | Add-Member -Name KeyRotationRequest -type noteproperty -Value "Successful"
+                        Return $obj
+                    }
+            }
+            catch {
+                #$Requested = "Failed"
+                $obj = New-Object psobject
+                $obj | Add-Member -Name ID -type noteproperty -Value $_
+                $obj | Add-Member -Name KeyRotationRequest -type noteproperty -Value "Failed"
+                Return $obj
+            }
+        }
+    }#>
+
+    $ScriptBlock = {
+        param ([System.Collections.Hashtable]$AuthenticationHeader, [string]$Resource, [string]$cID, [string]$tID, [string]$APIVersion)
+        if (-not($Runcount)) {
+            $Runcount = 0
+        }
+        $Runcount++
+        if ($Runcount -ge 1000) {
+
+            $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
+            $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
+            $Runcount = 0 
+        }
+        
+        $GraphURI = "https://graph.microsoft.com/$($APIVersion)/$($Resource)/$($_)/rotateBitLockerKeys"
+        $RequestParams = @{
+            "Uri"         = $GraphURI
+            "Headers"     = $AuthenticationHeader
+            "Method"      = "POST"
+            "ErrorAction" = "Stop"
+            "Verbose"     = $TRUE
+        }
+
+        # Invoke Graph request
+        try {
+            Invoke-RestMethod @RequestParams
+            if ($?) {
+                #$Requested = "Successfull"
+                $obj = New-Object psobject
+                $obj | Add-Member -Name ID -type noteproperty -Value $_
+                $obj | Add-Member -Name KeyRotationRequest -type noteproperty -Value "Successful"
+                Return $obj
+            }
+        }
+        catch {
+            try {
+                $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
+                $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
                 Invoke-RestMethod @RequestParams
                 if ($?) {
                     #$Requested = "Successfull"
@@ -517,16 +562,13 @@ Process {
     Foreach ($i in $SplitDevicelist) {
         # Get authentication token
         #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
-        try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
-        catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
+        $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop
         if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
         $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
-        
         $Counter++
                 
         Write-Host "Rotation Round number $($Counter) of $($parts)"
 
-        # This is the little code snippet that allows the parallel processing of the data. Remember that $i is actually an array.
         $RawExtractionReport = @($i.id | Start-RSJob -ScriptBlock $ScriptBlock -Throttle $ThrottleLimit -ArgumentList $AuthenticationHeader, $Resource, $ClientID, $TenantID, "Beta" | Wait-RSJob -ShowProgress | Receive-RSJob)
         Get-RSJob | Remove-RSJob -Force
 
@@ -564,7 +606,6 @@ Process {
     $FCounter = 0
     Foreach ($f in $FailedDevicelist) {
         # Get authentication token
-        #if ($AccessToken) { Remove-Variable -Name AccessToken -Force }
         try { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ForceRefresh -Silent -ErrorAction Stop }
         catch { $AccessToken = Get-MsalToken -TenantId $TenantID -ClientId $ClientID -ErrorAction Stop }
         if ($AuthenticationHeader) { Remove-Variable -Name AuthenticationHeader -Force }
