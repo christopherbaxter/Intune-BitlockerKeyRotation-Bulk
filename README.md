@@ -2,6 +2,8 @@
 
 If you are migrating to Intune Bitlocker management, with Bitlocker Recovery Keys escrowed to AzureAD, this script will allow you to rotate the keys for all Windows 10 devices in AzureAD. 
 
+The reason this script exists is that (as of 15/02/2022), there is no other way to request the devices to rotate their Bitlocker Recovery keys into AzureAD (or escrow the key if none exists in AzureAD) in bulk.
+
 ## What is needed for this script to function?
 
 You will need a Service Principal in AzureAD with sufficient rights. I have a Service Principal that I use for multiple processes, I would not advise copying my permissions. I suggest following the guide from <https://msendpointmgr.com/2021/01/18/get-intune-managed-devices-without-an-escrowed-bitlocker-recovery-key-using-powershell/>. My permissions are set as in the image below. Please do not copy my permissions, this Service Principal is used for numerous tasks. I really should correct this, unfortunately, time has not been on my side, so I just work with what work for now. 
@@ -39,11 +41,9 @@ The functions needed by the script are included in the script. I have modified t
 
 ### The Variables
 
-The variables get set here. I have a need to upload the report for another team to use for another report. Enable these and you will be able to do the same.
+The variable section also has a section to use the system proxy. I was having trouble with the proxy, intermittently. Adding these lines solved the problem
 
 ![](https://github.com/christopherbaxter/Intune-BitlockerKeyRotation-Bulk/blob/348f157a46d96611fcff401e25d5fe79ce47c3b1/Images/02-Variables.jpg)
-
-The variable section also has a section to use the system proxy. I was having trouble with the proxy, intermittently. Adding these lines solved the problem
 
 ### The initial Authentication and Token Acquisition
 
