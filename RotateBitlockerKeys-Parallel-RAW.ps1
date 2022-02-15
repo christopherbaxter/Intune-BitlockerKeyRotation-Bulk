@@ -409,7 +409,7 @@ Process {
     # This will be if you want to specify the IntuneDeviceIDs
 
     #$InputFile = "$($FilePath)InputFiles\TargetedIntuneDeviceIDs.csv"
-    $IntuneDevIDs | Export-Csv "$($FilePath)AzureADDeviceID.csv" -NoTypeInformation -Delimiter ";"
+    #$IntuneDevIDs | Export-Csv $InputFile -NoTypeInformation -Delimiter ";"
     #$IntuneDevIDs = @(Import-Csv -Path "$($FilePath)AzureADDeviceID.csv" -Delimiter ";")
     #$IntuneDevIDs = $IntuneDevIDs[0..999] # I use this for testing on a small number of devices
     
