@@ -103,3 +103,6 @@ There is not much more to see here, only that I again run the extract using the 
 The code will test for the retries based on the count of objects in the array for the retries. If this array is empty, the script will export the extracted data as is. If there count in the retried array is more than zero, the script will 'blend' the arrays (the successful extract array, and the retried extract array), then spit out a report.
 
 ![](https://github.com/christopherbaxter/Intune-BitlockerKeyRotation-Bulk/blob/348f157a46d96611fcff401e25d5fe79ce47c3b1/Images/11-GenerateandExportReport.jpg)
+
+Visitor Counter (Excuse the font, I have no idea what I'm doing)
+![Visitor Count](https://profile-counter.glitch.me/christopherbaxter/count.svg)
