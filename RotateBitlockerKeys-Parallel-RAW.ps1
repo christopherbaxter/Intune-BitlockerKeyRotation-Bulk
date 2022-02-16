@@ -431,69 +431,6 @@ Process {
     # Specify the ScriptBlock for the PoshRSJob
     #############################################################################################################################################
 
-    <#$ScriptBlock = {
-        param ([System.Collections.Hashtable]$AuthenticationHeader, [string]$Resource, [string]$cID, [string]$tID, [string]$APIVersion)
-        if (-not($Runcount)) {
-            $Runcount = 0
-        }
-        $Runcount++
-        if ($Runcount -ge 1000) {
-
-            $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
-            $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
-            $Runcount = 0 
-        }
-        
-        $GraphURI = "https://graph.microsoft.com/$($APIVersion)/$($Resource)/$($_)/rotateBitLockerKeys"
-        $RequestParams = @{
-            "Uri"         = $GraphURI
-            "Headers"     = $AuthenticationHeader
-            "Method"      = "POST"
-            "ErrorAction" = "Stop"
-            "Verbose"     = $TRUE
-        }
-
-        # Invoke Graph request
-        try {
-            Invoke-RestMethod @RequestParams
-            if ($?) {
-                #$Requested = "Successfull"
-                $obj = New-Object psobject
-                $obj | Add-Member -Name ID -type noteproperty -Value $_
-                $obj | Add-Member -Name KeyRotationRequest -type noteproperty -Value "Successful"
-                Return $obj
-            }
-        }
-        catch {
-            $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
-            $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
-            $RequestParams = @{
-                "Uri"         = $GraphURI
-                "Headers"     = $AuthenticationHeader
-                "Method"      = "POST"
-                "ErrorAction" = "Stop"
-                "Verbose"     = $TRUE
-            }
-            try {
-                Invoke-RestMethod @RequestParams
-                    if ($?) {
-                        #$Requested = "Successfull"
-                        $obj = New-Object psobject
-                        $obj | Add-Member -Name ID -type noteproperty -Value $_
-                        $obj | Add-Member -Name KeyRotationRequest -type noteproperty -Value "Successful"
-                        Return $obj
-                    }
-            }
-            catch {
-                #$Requested = "Failed"
-                $obj = New-Object psobject
-                $obj | Add-Member -Name ID -type noteproperty -Value $_
-                $obj | Add-Member -Name KeyRotationRequest -type noteproperty -Value "Failed"
-                Return $obj
-            }
-        }
-    }#>
-
     $ScriptBlock = {
         param ([System.Collections.Hashtable]$AuthenticationHeader, [string]$Resource, [string]$cID, [string]$tID, [string]$APIVersion)
         if (-not($Runcount)) {
