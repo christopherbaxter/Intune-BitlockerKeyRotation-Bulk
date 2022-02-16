@@ -27,12 +27,10 @@ param(
     #PLEASE make sure you have specified your details below, else edit this and use the switches\variables in command line.
     [parameter(Mandatory = $TRUE, HelpMessage = "Specify the Azure AD tenant ID.")]
     [ValidateNotNullOrEmpty()]
-    #[string]$TenantID,
     [string]$TenantID,
 
     [parameter(Mandatory = $TRUE, HelpMessage = "Specify the service principal, also known as app registration, Client ID (also known as Application ID).")]
     [ValidateNotNullOrEmpty()]
-    #[string]$ClientID
     [string]$ClientID
 )
 Begin {}
@@ -503,7 +501,6 @@ Process {
         }
         $Runcount++
         if ($Runcount -ge 1000) {
-
             $AccessToken = Get-MsalToken -TenantId $tID -ClientId $cID -ForceRefresh -Silent -ErrorAction Stop
             $AuthenticationHeader = New-AuthenticationHeader -AccessToken $AccessToken
             $Runcount = 0 
