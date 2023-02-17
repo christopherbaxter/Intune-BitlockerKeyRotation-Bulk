@@ -2,7 +2,7 @@
 
 If you are migrating to Intune Bitlocker management, with Bitlocker Recovery Keys escrowed to AzureAD, this script will allow you to rotate the keys for all Windows 10 devices in AzureAD. 
 
-The reason this script exists is that (as of 15/02/2022), there is no other way to request the devices to rotate their Bitlocker Recovery keys into AzureAD (or escrow the key if none exists in AzureAD) in bulk.
+The reason this script exists is that (as of 15/02/2022), there is no other way to request the devices to rotate their Bitlocker Recovery keys into AzureAD (or escrow the key if none exists in AzureAD) in bulk. This script can easily be modified to allow other bulk actions on AzureAD devices.
 
 ## What is needed for this script to function?
 
